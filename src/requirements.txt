@@ -1,5 +1,6 @@
 pyyaml==6.0.1
+azure-identity
 jinja2==3.1.4
-openai==0.27.9
+openai
 tiktoken==0.4.0
 tree_sitter==0.20.1

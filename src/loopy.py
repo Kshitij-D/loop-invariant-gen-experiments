@@ -7,6 +7,7 @@ import re
 import traceback
 import warnings
 from copy import deepcopy
+from tqdm import tqdm
 
 import yaml
 
@@ -32,6 +33,7 @@ class Loopy:
         self.checker = None
 
     def set_config(self, config_file, no_preprocess=False):
+        print(str(config_file))
         config = yaml.load(open(config_file, "r"), Loader=yaml.FullLoader)
 
         self.arg_params = {"cli_args": self.arg_params, "config_file_args": config}
@@ -63,7 +65,9 @@ class Loopy:
                 UserWarning,
             )
         loopyfact = LoopyFactory(config["checker"])
-        self.benchmark = loopyfact.get_benchmark(benchmarks, self.benchmark_features, no_preprocess)
+        self.benchmark = loopyfact.get_benchmark(
+            benchmarks, self.benchmark_features, no_preprocess
+        )
         self.checker = loopyfact.get_checker()
 
         if "checker_timeout" in config:
@@ -85,7 +89,9 @@ class Loopy:
 
         Logger.log_info("Validating input files")
         self.benchmark.validate_inputs(no_preprocess)
-        Logger.log_info(f"Found {len(self.benchmark.input_file_paths)} valid benchmarks")
+        Logger.log_info(
+            f"Found {len(self.benchmark.input_file_paths)} valid benchmarks"
+        )
 
         return self
 
@@ -250,7 +256,7 @@ class Loopy:
                 num_completions=15,
             )
 
-        for benchmark_index, benchmark_file in enumerate(sliced_benchmarks):
+        for benchmark_index, benchmark_file in tqdm(enumerate(sliced_benchmarks), total=len(sliced_benchmarks), desc="Running benchmarks"):
             Logger.log_info(
                 f"Running benchmark: {start_index + benchmark_index + 1}/{len(sliced_benchmarks)}"
             )
@@ -295,6 +301,7 @@ class Loopy:
                         continue
 
                     Logger.log_info(f"Checking completion {len(completions) + 1}")
+                    tqdm.write("Progress")
 
                     checker_input_with_annotations = self.benchmark.combine_llm_outputs(
                         self.benchmark.get_code(benchmark_file),
@@ -1054,7 +1061,7 @@ class Loopy:
             num_completions=5,
         )
 
-        for benchmark_index, benchmark_file in enumerate(sliced_benchmarks):
+        for benchmark_index, benchmark_file in tqdm(enumerate(sliced_benchmarks), total=len(sliced_benchmarks), desc="Running benchmarks"):
             Logger.log_info(
                 f"Running benchmark: {start_index + benchmark_index + 1}/{len(sliced_benchmarks)}"
             )

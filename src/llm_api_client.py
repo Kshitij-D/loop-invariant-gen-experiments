@@ -1,11 +1,16 @@
-import os
+import tempfile
+from pathlib import Path, PurePath
 import re
 import time
 from typing import Any, List
 
 import openai
 import tiktoken
-
+from azure.identity import (
+    AuthenticationRecord,
+    InteractiveBrowserCredential,
+    TokenCachePersistenceOptions,
+)
 from llm_utils import Logger, Settings
 from llm import LLMClient
 
@@ -69,8 +74,8 @@ class LLMAPIClient(LLMClient):
                 )
 
                 completions = []
-                for completion in response["choices"]:
-                    completions.append(completion["message"]["content"])
+                for completion in response.choices:
+                    completions.append(completion.message.content)
 
                 Logger.log_model_response(
                     self.settings.model,
@@ -108,10 +113,90 @@ class Provider:
         raise NotImplementedError
 
 
+def getOpenAIClient() -> openai.OpenAI:
+    base_url = "https://trapi.research.microsoft.com/msri/"
+    api_url = "azure"
+    api_version = "2024-06-01"
+    api_key = get_auth_token("api://trapi/.default")
+
+    if api_key is None:
+        raise Exception("API KEY NOT AVAILABLE")
+
+    return openai.AzureOpenAI(
+        azure_endpoint=base_url, api_key=api_key, api_version=api_version
+    )
+
+
+def read_file(file_path: str) -> str:
+    encodings = ["utf-8-sig", "utf-16"]
+    try:
+        for encoding in encodings:
+            try:
+                with open(file_path, "r", encoding=encoding) as file_handle:
+                    return file_handle.read()
+            except UnicodeError:
+                continue
+    except Exception as exc:
+        error_msg = f"Error while reading file '{file_path}': {exc}"
+        print(error_msg)
+        raise
+    return ""
+
+
+def write_file(file_path: str, file_data, file_encoding: str = "utf-8-sig"):
+    try:
+        Path(file_path).parent.mkdir(parents=True, exist_ok=True)
+        with open(file_path, "w", encoding=file_encoding) as file_handle:
+            file_handle.write(file_data)
+    except Exception as exc:
+        error_msg = f"Error while writing to file '{file_path}': {exc}"
+        print(error_msg)
+        raise
+
+
+def exists(path: str) -> bool:
+    try:
+        return Path(path).exists()
+    except Exception:
+        return False
+
+
+def get_auth_token(scope: str) -> str:
+    deserialized_auth_record = None
+
+    print("AAAAA")
+    auth_token_cache_file_path = str(
+        PurePath(tempfile.gettempdir(), "auth_token_cache.json")
+    )
+    if exists(auth_token_cache_file_path):
+        auth_record_json = read_file(auth_token_cache_file_path)
+        deserialized_auth_record = AuthenticationRecord.deserialize(auth_record_json)
+
+    token_cache_persistence_options = TokenCachePersistenceOptions(
+        allow_unencrypted_storage=True
+    )
+
+    credential = InteractiveBrowserCredential(
+        cache_persistence_options=token_cache_persistence_options,
+        authentication_record=deserialized_auth_record,
+    )
+
+    print("AAABB")
+    auth_token = credential.get_token(scope).token
+    auth_record = credential.authenticate(scopes=[scope])
+    auth_record_json = AuthenticationRecord.serialize(auth_record)
+
+    write_file(auth_token_cache_file_path, auth_record_json)
+
+    print("CCCBB")
+    return auth_token
+
+
 class AzureOpenAI(Provider):
     def __init__(self, api_key, api_base, api_version):
         super().__init__("azure-openai", api_key, api_base, api_version)
         self.api_type = "azure"
+        self.client = getOpenAIClient()
 
     def get_completion(self, **kwargs):
         openai.api_key = self.api_key
@@ -129,8 +214,8 @@ class AzureOpenAI(Provider):
         presence_penalty = kwargs.get("presence_penalty")
         stop = kwargs.get("stop")
 
-        response = openai.ChatCompletion.create(
-            engine=model,
+        response = self.client.chat.completions.create(
+            model=model,
             messages=messages,
             max_tokens=max_tokens,
             temperature=temperature,
@@ -175,4 +260,3 @@ class AzureOpenAI(Provider):
         for message in messages:
             prompt += message["content"]
         return prompt
-
