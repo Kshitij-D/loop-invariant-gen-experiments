@@ -152,9 +152,9 @@ class LLM:
             )
         )
 
-        (_, responses) = llm_client.chat([system_message, user_message])
+        (_, responses) = llm_client.chat([user_message])
 
-        response_logs = [system_message, user_message] + responses
+        response_logs = [user_message] + responses
 
         response_blocks = []
         for response in responses:

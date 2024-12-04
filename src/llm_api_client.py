@@ -70,7 +70,6 @@ class LLMAPIClient(LLMClient):
                     top_p=self.settings.top_p,
                     frequency_penalty=self.settings.frequency_penalty,
                     presence_penalty=self.settings.presence_penalty,
-                    stop=self.settings.stop,
                 )
 
                 completions = []
@@ -113,10 +112,15 @@ class Provider:
         raise NotImplementedError
 
 
+def getOpenAIClient1() -> openai.OpenAI:
+    base_url = "http://localhost:8000/v1"
+    return openai.OpenAI(base_url=base_url, api_key="EMPTY")
+
+
 def getOpenAIClient() -> openai.OpenAI:
     base_url = "https://trapi.research.microsoft.com/msri/"
     api_url = "azure"
-    api_version = "2024-06-01"
+    api_version = "2024-10-21"
     api_key = get_auth_token("api://trapi/.default")
 
     if api_key is None:
@@ -164,7 +168,6 @@ def exists(path: str) -> bool:
 def get_auth_token(scope: str) -> str:
     deserialized_auth_record = None
 
-    print("AAAAA")
     auth_token_cache_file_path = str(
         PurePath(tempfile.gettempdir(), "auth_token_cache.json")
     )
@@ -181,14 +184,12 @@ def get_auth_token(scope: str) -> str:
         authentication_record=deserialized_auth_record,
     )
 
-    print("AAABB")
     auth_token = credential.get_token(scope).token
     auth_record = credential.authenticate(scopes=[scope])
     auth_record_json = AuthenticationRecord.serialize(auth_record)
 
     write_file(auth_token_cache_file_path, auth_record_json)
 
-    print("CCCBB")
     return auth_token
 
 
@@ -199,33 +200,36 @@ class AzureOpenAI(Provider):
         self.client = getOpenAIClient()
 
     def get_completion(self, **kwargs):
-        openai.api_key = self.api_key
-        openai.api_base = self.api_base
-        openai.api_type = self.api_type
-        openai.api_version = self.api_version
-
-        model = kwargs.get("model")
+        # openai.api_key = self.api_key
+        # openai.api_base = self.api_base
+        # openai.api_type = self.api_type
+        # openai.api_version = self.api_version
+        #
+        model = kwargs.get("model") + "_" + "2024-09-12"
+        print(model)
         messages = kwargs.get("messages")
-        max_tokens = kwargs.get("max_tokens")
+        max_completion_tokens = 10000
+        # max_completion_tokens = kwargs.get("max_tokens")
         temperature = kwargs.get("temperature")
-        num_completions = kwargs.get("num_completions")
+        num_completions = 1
         top_p = kwargs.get("top_p")
         frequency_penalty = kwargs.get("frequency_penalty")
         presence_penalty = kwargs.get("presence_penalty")
-        stop = kwargs.get("stop")
 
+        # model = "hugging-quants/Meta-Llama-3.1-70B-Instruct-AWQ-INT4"
+        time.sleep(30)
         response = self.client.chat.completions.create(
             model=model,
             messages=messages,
-            max_tokens=max_tokens,
-            temperature=temperature,
+            max_completion_tokens=max_completion_tokens,
+            # temperature=temperature,
             n=num_completions,
-            top_p=top_p,
+            # top_p=top_p,
             frequency_penalty=frequency_penalty,
             presence_penalty=presence_penalty,
-            stop=stop,
         )
 
+        print(response.usage)
         return response
 
     def enforce_token_limit(self, prompt: list[dict[str, str]], model: str):
@@ -234,12 +238,14 @@ class AzureOpenAI(Provider):
         _prompt = self._messages_to_string(prompt)
 
         tokens_count: int = self._count_token_size(_prompt, model)
-        threshold = 0
+        threshold = 10000
         if model == "text-davinci-003":
             threshold = 2500
         elif model == "gpt-3.5-turbo":
             threshold = 2500
         elif model == "gpt-4":
+            threshold = 6000
+        elif model == "gpt-4o":
             threshold = 6000
         elif model == "gpt-4-32k":
             threshold = 30000

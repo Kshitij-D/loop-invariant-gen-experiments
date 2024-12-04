@@ -256,7 +256,11 @@ class Loopy:
                 num_completions=15,
             )
 
-        for benchmark_index, benchmark_file in tqdm(enumerate(sliced_benchmarks), total=len(sliced_benchmarks), desc="Running benchmarks"):
+        for benchmark_index, benchmark_file in tqdm(
+            enumerate(sliced_benchmarks),
+            total=len(sliced_benchmarks),
+            desc="Running benchmarks",
+        ):
             Logger.log_info(
                 f"Running benchmark: {start_index + benchmark_index + 1}/{len(sliced_benchmarks)}"
             )
@@ -319,7 +323,7 @@ class Loopy:
                     completion_json["checker_output_for_annotations"] = __success
                     completion_json["checker_message_for_annotations"] = checker_message
 
-                    if not __success:
+                    if not True:
                         try:
                             (
                                 __success,
@@ -352,85 +356,85 @@ class Loopy:
 
                 instance_log_json["completions"] = completions
 
-                checker_input_with_combined_annotations = self.benchmark.combine_llm_outputs(
-                    self.benchmark.get_code(benchmark_file),
-                    [
-                        block
-                        for block in annotation_blocks
-                        if not (
-                            len(block) == 2
-                            and block[0]
-                            == (
-                                "ERROR: Output does not contain at least 1 complete code block"
-                            )
-                        )
-                    ],
-                    self.benchmark_features,
-                )
-
-                Logger.log_info(
-                    f"Checking combined annotations for benchmark: {start_index + benchmark_index + 1}/{len(sliced_benchmarks)}"
-                )
-
-                __success, checker_message = self.checker.check(
-                    checker_input_with_combined_annotations,
-                    check_variant=False,
-                    check_contracts=False,
-                )
-
-                if __success:
-                    Logger.log_success(
-                        f"Combined annotations are correct for benchmark: {start_index + benchmark_index + 1}/{len(sliced_benchmarks)}"
-                    )
-                else:
-                    Logger.log_error(
-                        f"Combined annotations are incorrect for benchmark: {start_index + benchmark_index + 1}/{len(sliced_benchmarks)}"
-                    )
-
-                instance_log_json["checker_output_for_combined_annotations"] = __success
-                instance_log_json["checker_message_for_combined_annotations"] = (
-                    checker_message
-                )
-                instance_log_json["code_with_combined_annotations"] = (
-                    checker_input_with_combined_annotations
-                )
-
-                success = __success or success
-
-                if not __success:
-                    Logger.log_info(
-                        f"Houdini for combined annotations for benchmark: {start_index + benchmark_index + 1}/{len(sliced_benchmarks)}"
-                    )
-
-                    try:
-                        (
-                            __success,
-                            pruned_code,
-                            num_frama_c_calls,
-                        ) = self.checker.houdini(
-                            checker_input_with_combined_annotations,
-                            check_variant=False,
-                            check_contracts=False,
-                        )
-
-                        if __success:
-                            Logger.log_success(
-                                f"Houdini for combined annotations successful for benchmark: {start_index + benchmark_index + 1}/{len(sliced_benchmarks)}"
-                            )
-                        else:
-                            Logger.log_error(
-                                f"Houdini for combined annotations unsuccessful for benchmark: {start_index + benchmark_index + 1}/{len(sliced_benchmarks)}"
-                            )
-
-                        instance_log_json["combined_annotation_num_solver_calls"] = (
-                            num_frama_c_calls + 1
-                        )
-                        instance_log_json["code_after_prune"] = pruned_code
-                        instance_log_json["checker_output_after_prune"] = __success
-                    except Exception as e:
-                        instance_log_json["houdini_error"] = str(e)
-
-                success = __success or success
+                # checker_input_with_combined_annotations = self.benchmark.combine_llm_outputs(
+                #     self.benchmark.get_code(benchmark_file),
+                #     [
+                #         block
+                #         for block in annotation_blocks
+                #         if not (
+                #             len(block) == 2
+                #             and block[0]
+                #             == (
+                #                 "ERROR: Output does not contain at least 1 complete code block"
+                #             )
+                #         )
+                #     ],
+                #     self.benchmark_features,
+                # )
+                #
+                # Logger.log_info(
+                #     f"Checking combined annotations for benchmark: {start_index + benchmark_index + 1}/{len(sliced_benchmarks)}"
+                # )
+                #
+                # __success, checker_message = self.checker.check(
+                #     checker_input_with_combined_annotations,
+                #     check_variant=False,
+                #     check_contracts=False,
+                # )
+                #
+                # if __success:
+                #     Logger.log_success(
+                #         f"Combined annotations are correct for benchmark: {start_index + benchmark_index + 1}/{len(sliced_benchmarks)}"
+                #     )
+                # else:
+                #     Logger.log_error(
+                #         f"Combined annotations are incorrect for benchmark: {start_index + benchmark_index + 1}/{len(sliced_benchmarks)}"
+                #     )
+                #
+                # instance_log_json["checker_output_for_combined_annotations"] = __success
+                # instance_log_json["checker_message_for_combined_annotations"] = (
+                #     checker_message
+                # )
+                # instance_log_json["code_with_combined_annotations"] = (
+                #     checker_input_with_combined_annotations
+                # )
+                #
+                # success = __success or success
+                #
+                # if not __success:
+                #     Logger.log_info(
+                #         f"Houdini for combined annotations for benchmark: {start_index + benchmark_index + 1}/{len(sliced_benchmarks)}"
+                #     )
+                #
+                #     try:
+                #         (
+                #             __success,
+                #             pruned_code,
+                #             num_frama_c_calls,
+                #         ) = self.checker.houdini(
+                #             checker_input_with_combined_annotations,
+                #             check_variant=False,
+                #             check_contracts=False,
+                #         )
+                #
+                #         if __success:
+                #             Logger.log_success(
+                #                 f"Houdini for combined annotations successful for benchmark: {start_index + benchmark_index + 1}/{len(sliced_benchmarks)}"
+                #             )
+                #         else:
+                #             Logger.log_error(
+                #                 f"Houdini for combined annotations unsuccessful for benchmark: {start_index + benchmark_index + 1}/{len(sliced_benchmarks)}"
+                #             )
+                #
+                #         instance_log_json["combined_annotation_num_solver_calls"] = (
+                #             num_frama_c_calls + 1
+                #         )
+                #         instance_log_json["code_after_prune"] = pruned_code
+                #         instance_log_json["checker_output_after_prune"] = __success
+                #     except Exception as e:
+                #         instance_log_json["houdini_error"] = str(e)
+                #
+                # success = __success or success
 
                 instance_log_json["success"] = success
 
@@ -1061,7 +1065,11 @@ class Loopy:
             num_completions=5,
         )
 
-        for benchmark_index, benchmark_file in tqdm(enumerate(sliced_benchmarks), total=len(sliced_benchmarks), desc="Running benchmarks"):
+        for benchmark_index, benchmark_file in tqdm(
+            enumerate(sliced_benchmarks),
+            total=len(sliced_benchmarks),
+            desc="Running benchmarks",
+        ):
             Logger.log_info(
                 f"Running benchmark: {start_index + benchmark_index + 1}/{len(sliced_benchmarks)}"
             )
