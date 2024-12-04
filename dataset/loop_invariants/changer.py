@@ -30,11 +30,11 @@ def generate_polynomial_identity(junk_vars):
         # Handle the square terms and assign to the appropriate side
         if square_term_assignment == "lhs":
             lhs_identity = "(" + " + ".join(terms) + ") + "
-            rhs_identity = "((" + sum_vars + ")*(" + sum_vars + ")" " + "
+            rhs_identity = "((" + sum_vars + ")*(" + sum_vars + "))" " + "
             lhs_coeffs, rhs_coeffs = split_coefficient(coefficient)
         else:
             rhs_identity = "(" + " + ".join(terms) + ") + "
-            lhs_identity = "(" + sum_vars + ")^2 + "
+            lhs_identity = "((" + sum_vars + ")*(" + sum_vars + "))" " + "
             rhs_coeffs, lhs_coeffs = split_coefficient(coefficient)
 
         # Distribute terms with appropriate signs
@@ -44,7 +44,7 @@ def generate_polynomial_identity(junk_vars):
             rhs_cross_terms.append(f"{rhs_coeff}*{term}")
 
     # Add the cross terms to the appropriate sides
-    lhs_identity += "( " + " + ".join(lhs_cross_terms)
+    lhs_identity += " + ".join(lhs_cross_terms)
     rhs_identity += " + ".join(rhs_cross_terms)
 
     return lhs_identity, rhs_identity
@@ -109,8 +109,7 @@ def changerToOriginalWrite(code: str) -> str:
             if re.search(non_junk_pattern, line):
                 # print(line)
                 lhs, rhs = generate_polynomial_identity(list(junk_vars))
-                updated_line = line.replace(";", f" + ({rhs});", 1)
-                updated_line = updated_line.replace("=", f" + {lhs}) =", 1)
+                updated_line = line.replace(";", f" + ({rhs}) - ({lhs});", 1)
                 updated_body_lines.append(updated_line)
                 # print(updated_line)
             else:

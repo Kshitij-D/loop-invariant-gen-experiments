@@ -19,8 +19,8 @@ int main()
     //tb 
     if(unknown()) {
       //tb 
-      m  + (g2 + g0)^2 + ( -1*g2*g0 + -2*g2*g0) = x + ((g2*g2 + g0*g0) + -1*g2*g0);
-      g1 = 419 + tmp;
+      m = x + ((g4*g4 + g3*g3) + 1*g4*g3 + 2*g4*g3) - (((g4 + g3)*(g4 + g3)) + 1*g4*g3);
+      g1 = 419 + n + x;
     }
     else{
       //fb 

@@ -205,7 +205,7 @@ class AzureOpenAI(Provider):
         # openai.api_type = self.api_type
         # openai.api_version = self.api_version
         #
-        model = kwargs.get("model") + "_" + "2024-09-12"
+        model = kwargs.get("model") + "_" + "2024-08-06"
         print(model)
         messages = kwargs.get("messages")
         max_completion_tokens = 10000
@@ -221,7 +221,7 @@ class AzureOpenAI(Provider):
         response = self.client.chat.completions.create(
             model=model,
             messages=messages,
-            max_completion_tokens=max_completion_tokens,
+            max_tokens=max_completion_tokens,
             # temperature=temperature,
             n=num_completions,
             # top_p=top_p,

@@ -19,10 +19,10 @@ int main()
     //tb 
     if(unknown()) {
       //tb 
-      lock  + (g1 + g0)^2 + ( 1*g1*g0) = 1 + ((g1*g1 + g0*g0) + 1*g1*g0 + 2*g1*g0);
-      g4 = g1 + (g0) + x + tmp;
-      x  + (g1 + g3)^2 + ( -1*g1*g3 + -2*g1*g3) = y + ((g1*g1 + g3*g3) + -1*g1*g3);
-      g1 = g2 - (g4) + lock + x;
+      lock = 1 + ((g3*g3 + g0*g0) + 1*g3*g0 + 2*g3*g0) - (((g3 + g0)*(g3 + g0)) + 1*g3*g0);
+      g4 = g1 + (g0) + x - lock;
+      x = y + ((g4*g4 + g3*g3) + -1*g4*g3) - (((g4 + g3)*(g4 + g3)) + -1*g4*g3 + -2*g4*g3);
+      g1 = g2 - (g4) + x + tmp;
     }
     else{
       //fb 
